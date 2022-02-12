@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "author": "Anonymous maker",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": -16.67, "left": -127.33, "attrs": {} },
+    { "type": "wokwi-7segment", "id": "sevseg1", "top": 9.3, "left": 17.39, "attrs": {} }
+  ],
+  "connections": [
+    [ "esp:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+    [ "esp:D2", "sevseg1:E", "green", [ "h0" ] ],
+    [ "esp:D15", "sevseg1:D", "green", [ "h0" ] ],
+    [ "esp:D4", "sevseg1:C", "green", [ "h0" ] ],
+    [ "esp:D5", "sevseg1:DP", "green", [ "h27.77", "v20.41", "h62" ] ],
+    [ "esp:D18", "sevseg1:G", "green", [ "h28.44", "v-69.33", "h18" ] ],
+    [ "esp:D19", "sevseg1:F", "green", [ "h22.44", "v-71.16", "h36" ] ],
+    [ "esp:D21", "sevseg1:A", "green", [ "h16.44", "v-68.53", "h64" ] ],
+    [ "esp:D22", "sevseg1:B", "green", [ "h10.44", "v-49.63", "h40" ] ],
+    [ "esp:3V3", "sevseg1:COM.1", "green", [ "v1.87", "h70.44" ] ],
+    [ "esp:3V3", "sevseg1:COM.2", "green", [ "v6.54", "h107.77", "v-148", "h-42" ] ]
+  ]
+}
