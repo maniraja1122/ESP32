@@ -1,0 +1,6 @@
+pinMode(num,OUTPUT)
+digitalWrite(num,HIGH/LOW)
+touchRead(tnum)
+delay(time)
+Serial.begin(115200)
+Serial.println()
