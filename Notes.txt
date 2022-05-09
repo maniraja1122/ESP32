@@ -4,3 +4,6 @@ touchRead(tnum)
 delay(time)
 Serial.begin(115200)
 Serial.println()
+
+
+
