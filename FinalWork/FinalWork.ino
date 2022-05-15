@@ -1,33 +1,3 @@
-//
-//
-//
-//void loop(){
-//  if (Firebase.ready() && signupOK && (millis() - sendDataPrevMillis > 15000 || sendDataPrevMillis == 0)){
-//    sendDataPrevMillis = millis();
-//    // Write an Int number on the database path test/int
-//    if (){
-//      Serial.println("PASSED");
-//      Serial.println("PATH: " + fbdo.dataPath());
-//      Serial.println("TYPE: " + fbdo.dataType());
-//    }
-//    else {
-//      Serial.println("FAILED");
-//      Serial.println("REASON: " + fbdo.errorReason());
-//    }
-//    count++;
-//    
-//    // Write an Float number on the database path test/float
-//    if (Firebase.RTDB.setFloat(&fbdo, "test/float", 0.01 + random(0,100))){
-//      Serial.println("PASSED");
-//      Serial.println("PATH: " + fbdo.dataPath());
-//      Serial.println("TYPE: " + fbdo.dataType());
-//    }
-//    else {
-//      Serial.println("FAILED");
-//      Serial.println("REASON: " + fbdo.errorReason());
-//    }
-//  }
-//}
 
 //Main
 
@@ -59,7 +29,6 @@ FirebaseData fbdo;
 
 FirebaseAuth auth;
 FirebaseConfig config;
-unsigned long sendDataPrevMillis = 0;
 bool signupOK = false;
 
 int myout=15;
@@ -101,12 +70,62 @@ void setup() {
   
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
+  //Setting To Initial State
+  Firebase.RTDB.setInt(&fbdo, "sensing/value",1);
+  Firebase.RTDB.setInt(&fbdo, "warning/value",0);
+  Firebase.RTDB.setString(&fbdo, "status/show", "Nothing to Worry");
+  Firebase.RTDB.setInt(&fbdo, "check/value",1);
 }
 
 void loop() {
-  digitalWrite(myout,LOW);
+//  digitalWrite(myout,LOW);
+  int warning=0;
+  int sensingstatus=0;
+  //Reading Warning
+  if (Firebase.ready()){
+  if (Firebase.RTDB.getInt(&fbdo, "warning/value")) {
+      if (fbdo.dataType() == "int") {
+        warning = fbdo.intData();
+      }
+    }
+    }
+   //Reading Sensing Status
+   if (Firebase.ready()){
+  if (Firebase.RTDB.getInt(&fbdo, "sensing/value")) {
+      if (fbdo.dataType() == "int") {
+        sensingstatus = fbdo.intData();
+      }
+    }
+    }
   int stat=digitalRead(myout);
-  if(stat==1){
+  Serial.println(stat);
+  if(warning==1){
+    if (Firebase.ready()){
+  Firebase.RTDB.setString(&fbdo, "status/show", "Currently Buzzing");
+  Firebase.RTDB.setInt(&fbdo, "check/value",0);
+  Serial.println("Firebase Updated");
+  }
+  digitalWrite(pinled,HIGH);
+  digitalWrite(pinsound,HIGH);
+  int check=0;
+  while(check==0){
+    if (Firebase.ready()){
+  if (Firebase.RTDB.getInt(&fbdo, "check/value")) {
+      if (fbdo.dataType() == "int") {
+        check = fbdo.intData();
+        digitalWrite(pinled,HIGH);
+        digitalWrite(pinsound,HIGH);
+        delay(500);
+        digitalWrite(pinled,LOW);
+        digitalWrite(pinsound,LOW);
+        delay(500);
+      }
+    }
+    }
+  }
+  Firebase.RTDB.setInt(&fbdo, "warning/value",0);}
+  //if(stat==1 && sensingstatus==1){
+  if(stat==1 && sensingstatus==1){
     if (Firebase.ready()){
   Firebase.RTDB.setString(&fbdo, "status/show", "Currently Buzzing");
   Firebase.RTDB.setInt(&fbdo, "check/value",0);
@@ -129,11 +148,11 @@ void loop() {
   }
     else{
       Serial.println("no detection");
-      digitalWrite(pinsound,LOW);
       if (Firebase.ready()){
    Firebase.RTDB.setString(&fbdo, "status/show", "Nothing to Worry");
    Firebase.RTDB.setInt(&fbdo, "check/value",1);
     Serial.println("Firebase Updated");
   }
     }
+    stat=0;
 }
