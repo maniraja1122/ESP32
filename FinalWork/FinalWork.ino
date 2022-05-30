@@ -1,5 +1,5 @@
-
-//Main
+#define RXD2 16
+#define TXD2 17
 
 #include <Arduino.h>
 #if defined(ESP32)
@@ -19,27 +19,26 @@
 #define WIFI_PASSWORD "12345678"
 
 // Insert Firebase project API Key
-#define API_KEY "AIzaSyDIh1vBj-DPkZ0TNN4WJ4KGcrrj6CIQLH8"
+#define API_KEY "AIzaSyArWtqhQpSI9ZZVcxOLXg8Mu3SWMyLWl2A"
 
 // Insert RTDB URLefine the RTDB URL */
-#define DATABASE_URL "https://my-security-c42b7-default-rtdb.firebaseio.com" 
+#define DATABASE_URL "https://control-app-9077c-default-rtdb.firebaseio.com" 
 
 //Define Firebase Data object
 FirebaseData fbdo;
 
 FirebaseAuth auth;
 FirebaseConfig config;
-bool signupOK = false;
 
-int myout=15;
-int pinsound=12;
-int pinled=25;
-void setup() {
-  pinMode(myout,INPUT);
-  pinMode(pinsound,OUTPUT);
-  pinMode(pinled,OUTPUT);
-  Serial.begin(115200);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+bool signupOK = false;
+/* Variables Used */
+
+
+void setup(){
+ Serial.begin(115200);
+  Serial2.begin(9600,SERIAL_8N1,RXD2,TXD2);
+ Serial.begin(115200);
+WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.print("Connecting to Wi-Fi");
   while (WiFi.status() != WL_CONNECTED){
     Serial.print(".");
@@ -70,89 +69,15 @@ void setup() {
   
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
-  //Setting To Initial State
-  Firebase.RTDB.setInt(&fbdo, "sensing/value",1);
-  Firebase.RTDB.setInt(&fbdo, "warning/value",0);
-  Firebase.RTDB.setString(&fbdo, "status/show", "Nothing to Worry");
-  Firebase.RTDB.setInt(&fbdo, "check/value",1);
+   if(Firebase.ready() && signupOK){
+    Firebase.RTDB.setString(&fbdo, "glucovalue",Serial2.readString());
+  }
 }
 
-void loop() {
-//  digitalWrite(myout,LOW);
-  int warning=0;
-  int sensingstatus=0;
-  //Reading Warning
-  if (Firebase.ready()){
-  if (Firebase.RTDB.getInt(&fbdo, "warning/value")) {
-      if (fbdo.dataType() == "int") {
-        warning = fbdo.intData();
-      }
-    }
-    }
-   //Reading Sensing Status
-   if (Firebase.ready()){
-  if (Firebase.RTDB.getInt(&fbdo, "sensing/value")) {
-      if (fbdo.dataType() == "int") {
-        sensingstatus = fbdo.intData();
-      }
-    }
-    }
-  int stat=digitalRead(myout);
-  Serial.println(stat);
-  if(warning==1){
-    if (Firebase.ready()){
-  Firebase.RTDB.setString(&fbdo, "status/show", "Currently Buzzing");
-  Firebase.RTDB.setInt(&fbdo, "check/value",0);
-  Serial.println("Firebase Updated");
+void loop(){
+  Serial.println(Serial2.readString());
+  if(Firebase.ready() && signupOK){
+    Firebase.RTDB.setString(&fbdo, "glucovalue",Serial2.readString());
   }
-  digitalWrite(pinled,HIGH);
-  digitalWrite(pinsound,HIGH);
-  int check=0;
-  while(check==0){
-    if (Firebase.ready()){
-  if (Firebase.RTDB.getInt(&fbdo, "check/value")) {
-      if (fbdo.dataType() == "int") {
-        check = fbdo.intData();
-        digitalWrite(pinled,HIGH);
-        digitalWrite(pinsound,HIGH);
-        delay(500);
-        digitalWrite(pinled,LOW);
-        digitalWrite(pinsound,LOW);
-        delay(500);
-      }
-    }
-    }
-  }
-  Firebase.RTDB.setInt(&fbdo, "warning/value",0);}
-  //if(stat==1 && sensingstatus==1){
-  if(stat==1 && sensingstatus==1){
-    if (Firebase.ready()){
-  Firebase.RTDB.setString(&fbdo, "status/show", "Currently Buzzing");
-  Firebase.RTDB.setInt(&fbdo, "check/value",0);
-  Serial.println("Firebase Updated");
-  }
-  digitalWrite(pinled,HIGH);
-  digitalWrite(pinsound,HIGH);
-  int check=0;
-  while(check==0){
-    if (Firebase.ready()){
-  if (Firebase.RTDB.getInt(&fbdo, "check/value")) {
-      if (fbdo.dataType() == "int") {
-        check = fbdo.intData();
-      }
-    }
-    }
-  }
-  digitalWrite(pinled,LOW);
-  digitalWrite(pinsound,LOW);
-  }
-    else{
-      Serial.println("no detection");
-      if (Firebase.ready()){
-   Firebase.RTDB.setString(&fbdo, "status/show", "Nothing to Worry");
-   Firebase.RTDB.setInt(&fbdo, "check/value",1);
-    Serial.println("Firebase Updated");
-  }
-    }
-    stat=0;
+  delay(200);
 }
